@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Da Nang Flood SOS - Live Demo</title>
+    <title>Da Nang Flood SOS - Real Road Demo</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -15,99 +15,40 @@
         /* SIDEBAR (Bên trái) */
         #sidebar {
             width: 380px;
-            background-color: #1e1e2f; /* Màu tím than đậm */
+            background-color: #1e1e2f;
             color: #ecf0f1;
             padding: 25px;
             box-shadow: 4px 0 10px rgba(0,0,0,0.3);
             z-index: 1000;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease;
         }
 
-        /* Logo */
         .logo-area { text-align: center; border-bottom: 2px solid #34495e; padding-bottom: 20px; margin-bottom: 20px; }
         .logo-area h1 { margin: 0; color: #ff6b6b; font-size: 26px; text-transform: uppercase; letter-spacing: 2px; }
         .logo-area i { font-size: 40px; margin-bottom: 10px; color: #ff6b6b; }
         
-        /* Input Group */
         .input-group { position: relative; margin-bottom: 15px; }
         .input-group label { display: block; font-size: 13px; color: #bdc3c7; margin-bottom: 5px; }
         .input-wrapper { display: flex; }
         
-        input[type="text"] {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            background: #2d3446;
-            color: white;
-            border-radius: 6px 0 0 6px;
-            outline: none;
-        }
-        
-        button.btn-search {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 0 15px;
-            border-radius: 0 6px 6px 0;
-            cursor: pointer;
-            transition: 0.2s;
-        }
+        input[type="text"] { flex: 1; padding: 12px; border: none; background: #2d3446; color: white; border-radius: 6px 0 0 6px; outline: none; }
+        button.btn-search { background: #3498db; color: white; border: none; padding: 0 15px; border-radius: 0 6px 6px 0; cursor: pointer; transition: 0.2s; }
         button.btn-search:hover { background: #2980b9; }
 
-        /* Nút chức năng chính */
-        .action-btn {
-            width: 100%;
-            padding: 15px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: transform 0.2s;
-        }
+        .action-btn { width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform 0.2s; }
         .btn-safe { background: linear-gradient(135deg, #00b894, #00cec9); color: white; box-shadow: 0 4px 15px rgba(0, 184, 148, 0.4); }
         .btn-safe:active { transform: scale(0.98); }
-
         .btn-sos { background: linear-gradient(135deg, #ff7675, #d63031); color: white; margin-top: 20px; box-shadow: 0 4px 15px rgba(214, 48, 49, 0.4); animation: pulse 2s infinite; }
         
-        /* Thẻ trạng thái */
-        .status-panel {
-            background: rgba(255, 255, 255, 0.05);
-            margin-top: auto;
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid #444;
-        }
+        .status-panel { background: rgba(255, 255, 255, 0.05); margin-top: auto; padding: 15px; border-radius: 10px; border: 1px solid #444; }
         .status-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
         .status-val { font-weight: bold; color: #fab1a0; }
 
-        /* MAP (Bên phải) */
         #map { flex: 1; height: 100%; }
 
-        /* Custom Popup */
-        .custom-popup .leaflet-popup-content-wrapper { background: #2d3436; color: white; }
-        .custom-popup .leaflet-popup-tip { background: #2d3436; }
-
-        /* Hiệu ứng loading */
-        .loader {
-            display: none;
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 2000;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-        }
+        /* Loader */
+        .loader { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000; background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px; text-align: center; }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     </style>
@@ -116,20 +57,20 @@
 
     <div id="loader" class="loader">
         <i class="fas fa-spinner fa-spin fa-2x"></i>
-        <p>Đang tìm kiếm địa điểm...</p>
+        <p>Đang tìm đường...</p>
     </div>
 
     <div id="sidebar">
         <div class="logo-area">
             <i class="fas fa-water"></i>
             <h1>Da Nang SOS</h1>
-            <small>Điều hướng an toàn mùa lũ</small>
+            <small>Bản đồ thực tế</small>
         </div>
 
         <div class="input-group">
             <label><i class="fas fa-map-marker-alt" style="color:#00b894"></i> Điểm xuất phát</label>
             <div class="input-wrapper">
-                <input type="text" id="start-input" placeholder="Gõ vị trí (vd: Chợ Cồn)..." value="Đại học Bách Khoa Đà Nẵng">
+                <input type="text" id="start-input" value="ĐH Bách Khoa - ĐHĐN">
                 <button class="btn-search" onclick="searchLocation('start-input')"><i class="fas fa-search"></i></button>
             </div>
         </div>
@@ -137,7 +78,7 @@
         <div class="input-group">
             <label><i class="fas fa-flag-checkered" style="color:#ff7675"></i> Điểm đến</label>
             <div class="input-wrapper">
-                <input type="text" id="end-input" placeholder="Gõ vị trí (vd: Cầu Rồng)..." value="Cầu Rồng, Đà Nẵng">
+                <input type="text" id="end-input" value="Cầu Rồng, Đà Nẵng">
                 <button class="btn-search" onclick="searchLocation('end-input')"><i class="fas fa-search"></i></button>
             </div>
         </div>
@@ -151,9 +92,8 @@
         </button>
 
         <div class="status-panel">
-            <div class="status-row"><span>Kết nối vệ tinh:</span> <span class="status-val" style="color:#2ecc71">Ổn định</span></div>
-            <div class="status-row"><span>Cảm biến ngập:</span> <span class="status-val">15 trạm online</span></div>
-            <div class="status-row"><span>Thời tiết:</span> <span class="status-val">Mưa to (120mm)</span></div>
+            <div class="status-row"><span>Khu vực Hàm Nghi:</span> <span class="status-val" style="color:red">NGẬP 0.6M</span></div>
+            <div class="status-row"><span>Đường biển:</span> <span class="status-val" style="color:#2ecc71">Thông thoáng</span></div>
         </div>
     </div>
 
@@ -161,140 +101,108 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 1. Khởi tạo bản đồ
-        const map = L.map('map').setView([16.0544, 108.2022], 13);
+        // 1. Tọa độ trung tâm Đà Nẵng
+        const map = L.map('map').setView([16.060, 108.190], 13);
         
-        // Layer Dark Mode
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            attribution: '&copy; OpenStreetMap',
             maxZoom: 19
         }).addTo(map);
 
-        // Biến lưu trữ marker và đường đi
         let markers = {};
         let routeLayer = L.layerGroup().addTo(map);
         let floodLayer = L.layerGroup().addTo(map);
 
-        // 2. Hàm Tìm kiếm địa chỉ thật (Sử dụng API Nominatim miễn phí)
+        // 2. Định nghĩa Vùng Ngập (Khu vực Hàm Nghi - Bờ Hồ - Nguyễn Văn Linh)
+        // Đây là toạ độ thực tế khu vực hay ngập ở ĐN
+        const floodZoneReal = [
+            [16.062, 108.203], // Góc Nguyễn Văn Linh
+            [16.058, 108.202], // Hàm Nghi
+            [16.057, 108.206], // Bờ Hồ
+            [16.061, 108.208]  // Hoàng Diệu
+        ];
+
+        L.polygon(floodZoneReal, {
+            color: '#ff4757', 
+            fillColor: '#ff4757', 
+            fillOpacity: 0.5,
+            weight: 2
+        }).addTo(floodLayer).bindPopup("<b>KHU VỰC HÀM NGHI</b><br>Ngập sâu 0.6m - Xe máy không qua được.");
+
+        // 3. Hàm tìm kiếm địa điểm (dùng API thật)
         async function searchLocation(inputId) {
             const query = document.getElementById(inputId).value;
-            if(!query) return alert("Vui lòng nhập địa điểm!");
-
-            showLoader(true);
+            if(!query) return;
+            document.getElementById('loader').style.display = 'block';
 
             try {
-                // Gọi API tìm kiếm
                 const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
                 const data = await response.json();
-
+                
                 if (data.length > 0) {
                     const lat = data[0].lat;
                     const lon = data[0].lon;
-                    const displayName = data[0].display_name.split(',')[0]; // Lấy tên ngắn gọn
-
-                    // Bay tới vị trí đó
-                    map.flyTo([lat, lon], 16);
-
-                    // Xóa marker cũ nếu có cho ô input đó
+                    map.flyTo([lat, lon], 15);
                     if (markers[inputId]) map.removeLayer(markers[inputId]);
-
-                    // Tạo icon màu sắc khác nhau cho điểm đi/đến
-                    const iconColor = inputId === 'start-input' ? 'green' : 'red';
-                    
-                    // Thêm Marker mới
-                    markers[inputId] = L.marker([lat, lon]).addTo(map)
-                        .bindPopup(`<b>${displayName}</b><br>Đã xác định vị trí.`)
-                        .openPopup();
-
-                    showLoader(false);
-                } else {
-                    alert("Không tìm thấy địa điểm này ở Đà Nẵng. Thử lại nhé!");
-                    showLoader(false);
+                    markers[inputId] = L.marker([lat, lon]).addTo(map).bindPopup(data[0].display_name).openPopup();
                 }
-            } catch (error) {
-                console.error(error);
-                alert("Lỗi kết nối tìm kiếm!");
-                showLoader(false);
-            }
+            } catch (e) { alert("Lỗi tìm kiếm!"); }
+            document.getElementById('loader').style.display = 'none';
         }
 
-        // 3. Giả lập Dữ liệu Vùng Ngập (Vẽ sẵn)
-        const floodZones = [
-            [[16.065, 108.190], [16.060, 108.185], [16.055, 108.195], [16.062, 108.200]], // Khu vực 1
-            [[16.040, 108.210], [16.035, 108.205], [16.030, 108.215], [16.038, 108.220]]  // Khu vực 2
-        ];
-
-        // Vẽ vùng ngập lên bản đồ
-        floodZones.forEach(zone => {
-            L.polygon(zone, {
-                color: '#ff4757', 
-                fillColor: '#ff4757', 
-                fillOpacity: 0.4,
-                weight: 2
-            }).addTo(floodLayer).bindPopup("<b>CẢNH BÁO: NGẬP SÂU 0.5M</b><br>Không nên đi qua.");
-        });
-
-        // 4. Chức năng Demo Tìm Đường (Giả lập logic)
+        // 4. DEMO TÌM ĐƯỜNG (Toạ độ đường đi thực tế)
         function demoSafeRoute() {
             routeLayer.clearLayers();
             
-            // Lấy toạ độ giả lập (vì demo không thể tính đường thật realtime mà không có backend xịn)
-            // Tuyến đường xấu (đi qua vùng ngập)
-            const badRoute = [
-                [16.075, 108.155], // BKĐN
-                [16.065, 108.190], // Đi vào vùng ngập
-                [16.061, 108.222]  // Cầu Rồng
-            ];
+            // Toạ độ các điểm chốt
+            const startPoint = [16.0732, 108.1499]; // ĐH Bách Khoa
+            const endPoint = [16.0611, 108.2228];   // Đầu Cầu Rồng
             
-            // Tuyến đường an toàn (đi vòng)
-            const safeRoute = [
-                [16.075, 108.155],
-                [16.085, 108.180], // Vòng lên đường Nguyễn Tất Thành
-                [16.072, 108.215], // Đi đường Điện Biên Phủ
-                [16.061, 108.222]
-            ];
-
-            // Zoom bản đồ ra để thấy toàn cảnh
+            // Zoom ra để thấy toàn cảnh
             map.flyTo([16.065, 108.190], 13);
 
-            setTimeout(() => {
-                // Vẽ đường đỏ (Nguy hiểm)
-                L.polyline(badRoute, {color: 'red', dashArray: '10, 10', weight: 4})
-                .addTo(routeLayer)
-                .bindPopup("Đường ngắn nhất: <b>NGẬP (CẤM ĐI)</b>");
+            // TUYẾN 1: ĐƯỜNG ĐỎ (Đi xuyên qua Nguyễn Văn Linh - Bị ngập)
+            // Mô phỏng đi từ BK -> Điện Biên Phủ -> Nguyễn Văn Linh -> Cầu Rồng
+            const badRouteCoords = [
+                startPoint,
+                [16.068, 108.170], // Ngã ba Huế
+                [16.065, 108.190], // Điện Biên Phủ
+                [16.060, 108.204], // **ĐI VÀO VÙNG NGẬP HÀM NGHI**
+                endPoint
+            ];
 
-                // Vẽ đường xanh (An toàn)
-                const safeLine = L.polyline(safeRoute, {color: '#00cec9', weight: 6})
+            // TUYẾN 2: ĐƯỜNG XANH (Đi vòng Nguyễn Tất Thanh - An toàn)
+            // Mô phỏng đi từ BK -> Nguyễn Lương Bằng -> Nguyễn Tất Thanh (Biển) -> Cầu Thuận Phước -> Bạch Đằng
+            const safeRouteCoords = [
+                startPoint,
+                [16.078, 108.160], // Ra hướng biển
+                [16.075, 108.180], // Đường Nguyễn Tất Thanh (Đoạn 1)
+                [16.072, 108.200], // Đường Nguyễn Tất Thanh (Đoạn 2)
+                [16.070, 108.215], // Gần cầu Thuận Phước
+                [16.065, 108.220], // Đường Bạch Đằng
+                endPoint
+            ];
+
+            setTimeout(() => {
+                // Vẽ đường Đỏ
+                L.polyline(badRouteCoords, {color: 'red', weight: 5, dashArray: '10, 10', opacity: 0.7})
                 .addTo(routeLayer)
-                .bindPopup("<b>ĐƯỜNG AN TOÀN ĐỀ XUẤT</b><br>Đi đường Nguyễn Tất Thành - Tránh ngập.")
+                .bindPopup("Lộ trình Nguyễn Văn Linh: <b>BỊ NGẬP (CẤM ĐI)</b>");
+
+                // Vẽ đường Xanh
+                const safeLine = L.polyline(safeRouteCoords, {color: '#00cec9', weight: 7})
+                .addTo(routeLayer)
+                .bindPopup("<b>LỘ TRÌNH VEN BIỂN (AN TOÀN)</b><br>Đường Nguyễn Tất Thanh thông thoáng.")
                 .openPopup();
+                
             }, 1000);
         }
 
-        // Toggle ẩn hiện lớp ngập lụt
         let isHeatmapOn = true;
         function toggleHeatmap() {
-            if (isHeatmapOn) {
-                map.removeLayer(floodLayer);
-                isHeatmapOn = false;
-            } else {
-                map.addLayer(floodLayer);
-                isHeatmapOn = true;
-            }
+            if (isHeatmapOn) { map.removeLayer(floodLayer); isHeatmapOn = false; } 
+            else { map.addLayer(floodLayer); isHeatmapOn = true; }
         }
-
-        function showLoader(show) {
-            document.getElementById('loader').style.display = show ? 'block' : 'none';
-        }
-
-        // Thêm marker ngẫu nhiên khi click (Report)
-        map.on('click', function(e) {
-            L.popup()
-                .setLatLng(e.latlng)
-                .setContent(`<button style="background:red;color:white;border:none;padding:5px;" onclick="alert('Đã gửi báo cáo ngập!')">BÁO CÁO NGẬP TẠI ĐÂY</button>`)
-                .openOn(map);
-        });
-
     </script>
 </body>
 </html>
