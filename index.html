@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Da Nang Flood SOS - Demo</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Sidebar bên trái */
+        #sidebar {
+            width: 350px;
+            background-color: #1a1a1a;
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-area { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 20px; }
+        .logo-area h1 { margin: 0; color: #ff4757; text-transform: uppercase; letter-spacing: 2px; font-size: 24px; }
+        .logo-area p { margin: 5px 0 0; color: #aaa; font-size: 12px; }
+
+        .control-group { margin-bottom: 20px; background: #2d3436; padding: 15px; border-radius: 8px; }
+        .control-group h3 { margin-top: 0; font-size: 16px; color: #00cec9; }
+        
+        input, button { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: none; box-sizing: border-box; }
+        input { background: #444; color: white; }
+        
+        .btn-sos { background-color: #ff4757; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-sos:hover { background-color: #ff6b81; }
+
+        .btn-route { background-color: #0984e3; color: white; font-weight: bold; cursor: pointer; }
+        .btn-route:hover { background-color: #74b9ff; }
+
+        .status-card { margin-top: auto; background: #2d3436; padding: 15px; border-radius: 8px; border-left: 5px solid #ff4757; }
+        .stat-item { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
+        .stat-value { font-weight: bold; color: #ff4757; }
+
+        /* Bản đồ bên phải */
+        #map { flex: 1; height: 100%; }
+
+        /* Custom Popup */
+        .custom-popup .leaflet-popup-content-wrapper { background: #2d3436; color: white; border-radius: 4px; }
+        .custom-popup .leaflet-popup-tip { background: #2d3436; }
+        .danger-text { color: #ff4757; font-weight: bold; }
+        
+        /* Loading overlay */
+        #loading { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; color: white; flex-direction: column; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #0984e3; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="loading">
+        <div class="spinner"></div>
+        <p>Đang tìm tuyến đường an toàn nhất...</p>
+        <small>AI đang phân tích dữ liệu ngập...</small>
+    </div>
+
+    <div id="sidebar">
+        <div class="logo-area">
+            <h1><i class="fas fa-life-ring"></i> Da Nang SOS</h1>
+            <p>Hệ thống cảnh báo ngập lụt & dẫn đường</p>
+        </div>
+
+        <div class="control-group">
+            <h3><i class="fas fa-map-marker-alt"></i> Tìm đường an toàn</h3>
+            <input type="text" value="Đại học Bách Khoa ĐN" readonly>
+            <input type="text" value="Cầu Rồng, Hải Châu" readonly>
+            <button class="btn-route" onclick="findSafeRoute()"><i class="fas fa-route"></i> TÌM ĐƯỜNG TRÁNH LŨ</button>
+        </div>
+
+        <div class="control-group">
+            <h3><i class="fas fa-camera"></i> Báo cáo điểm ngập</h3>
+            <p style="font-size: 12px; color: #ccc;">Nhấn vào bản đồ để báo cáo vị trí ngập.</p>
+            <button class="btn-sos" onclick="alert('Chế độ giả lập: Hãy click vào bản đồ để tạo báo cáo!')">KÍCH HOẠT CHẾ ĐỘ BÁO CÁO</button>
+        </div>
+
+        <div class="status-card">
+            <div class="stat-item"><span>Cảnh báo mức độ:</span> <span class="stat-value">CẤP 3 (NGUY HIỂM)</span></div>
+            <div class="stat-item"><span>Điểm ngập sâu:</span> <span class="stat-value">12 điểm</span></div>
+            <div class="stat-item"><span>Đội cứu hộ:</span> <span style="color: #00cec9;">Hoạt động</span></div>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // 1. Khởi tạo bản đồ tại Đà Nẵng
+        var map = L.map('map').setView([16.0544, 108.2022], 13);
+
+        // 2. Thêm lớp bản đồ nền (Dark Mode cho ngầu)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
+
+        // 3. Giả lập Dữ liệu Vùng Ngập (Các đa giác màu đỏ)
+        // Khu vực Khe Cạn / Thanh Khê
+        var floodZone1 = [
+            [16.065, 108.190],
+            [16.060, 108.185],
+            [16.055, 108.195],
+            [16.062, 108.200]
+        ];
+        // Khu vực Hòa Xuân / Cẩm Lệ
+        var floodZone2 = [
+            [16.020, 108.210],
+            [16.015, 108.205],
+            [16.010, 108.215],
+            [16.018, 108.220]
+        ];
+
+        // Vẽ vùng ngập lên bản đồ
+        var polygon1 = L.polygon(floodZone1, {color: '#ff4757', fillColor: '#ff4757', fillOpacity: 0.5}).addTo(map);
+        var polygon2 = L.polygon(floodZone2, {color: '#ff4757', fillColor: '#ff4757', fillOpacity: 0.5}).addTo(map);
+
+        // Thêm Popup cho vùng ngập
+        polygon1.bindPopup("<b class='danger-text'>KHU VỰC NGUY HIỂM!</b><br>Độ sâu: 0.8m<br>Đã có xe chết máy.");
+        polygon2.bindPopup("<b class='danger-text'>CẢNH BÁO NGẬP</b><br>Độ sâu: 0.4m<br>Hạn chế di chuyển.");
+
+        // 4. Giả lập các điểm SOS (Marker)
+        var sosIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/564/564619.png', // Icon SOS
+            iconSize: [30, 30],
+        });
+
+        L.marker([16.058, 108.192], {icon: sosIcon}).addTo(map).bindPopup("SOS: Xe chết máy, cần cứu hộ!");
+        L.marker([16.061, 108.188], {icon: sosIcon}).addTo(map).bindPopup("SOS: Nước tràn vào nhà.");
+
+        // 5. Hàm tìm đường (Giả lập)
+        var routeLayerGroup = L.layerGroup().addTo(map);
+
+        function findSafeRoute() {
+            // Hiệu ứng Loading
+            document.getElementById('loading').style.display = 'flex';
+
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+                routeLayerGroup.clearLayers();
+
+                // Tọa độ điểm đầu (BKĐN) và điểm cuối (Cầu Rồng) giả định
+                var start = [16.075, 108.155]; // Khu vực Liên Chiểu (ví dụ)
+                var end = [16.061, 108.222];   // Cầu Rồng
+
+                // TUYẾN 1: Ngắn nhất nhưng bị ngập (Đường Đỏ đứt đoạn)
+                // Đi xuyên qua vùng ngập floodZone1
+                var badRoute = [
+                    [16.075, 108.155], // Start
+                    [16.065, 108.190], // Đi vào vùng ngập
+                    [16.061, 108.222]  // End
+                ];
+                var badPolyline = L.polyline(badRoute, {color: 'red', dashArray: '10, 10', weight: 4}).addTo(routeLayerGroup);
+                badPolyline.bindPopup("Đường ngắn nhất: <b>NGẬP SÂU (KHÔNG NÊN ĐI)</b>").openPopup();
+
+                // TUYẾN 2: An toàn (Đường Xanh liền mạch)
+                // Đi vòng tránh vùng ngập
+                var safeRoute = [
+                    [16.075, 108.155], // Start
+                    [16.080, 108.180], // Vòng lên phía bắc
+                    [16.070, 108.210], // Đi đường Điện Biên Phủ (ví dụ)
+                    [16.061, 108.222]  // End
+                ];
+                var safePolyline = L.polyline(safeRoute, {color: '#00cec9', weight: 6}).addTo(routeLayerGroup);
+                
+                // Zoom bản đồ để thấy toàn bộ đường đi
+                map.fitBounds(safePolyline.getBounds());
+
+                // Thông báo
+                setTimeout(() => {
+                    safePolyline.bindPopup("<b>TUYẾN ĐƯỜNG AN TOÀN</b><br>Xa hơn 1.2km nhưng KHÔNG NGẬP.").openPopup();
+                }, 1000);
+
+            }, 1500); // Giả vờ tính toán trong 1.5 giây
+        }
+
+        // 6. Sự kiện Click bản đồ để báo cáo
+        map.on('click', function(e) {
+            var newMarker = L.marker(e.latlng, {icon: sosIcon}).addTo(map);
+            newMarker.bindPopup("<b>Báo cáo mới từ bạn</b><br>Đang chờ AI xác thực...").openPopup();
+            alert("Đã gửi báo cáo tại toạ độ: " + e.latlng.lat.toFixed(4) + ", " + e.latlng.lng.toFixed(4) + "\nAI đang xử lý hình ảnh...");
+        });
+
+    </script>
+</body>
+</html>
